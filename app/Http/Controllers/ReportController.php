@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Auth;
 use Carbon\Carbon;
 use App\Models\Sale;
 use App\Models\Unit;
@@ -31,6 +30,7 @@ use App\Models\ProductQuotation;
 use App\Models\Product_Warehouse;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Auth;
 use App\Models\PurchaseProductReturn;
 use Spatie\Permission\Models\Permission;
 
@@ -859,6 +859,7 @@ class ReportController extends Controller
         $variant_id = [];
         $product_name = [];
         $product_qty = [];
+        $$totalData  = 0;
 
         $columns = array(
             1 => 'name'

@@ -1,5 +1,9 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -393,4 +397,3 @@ Route::group(['middleware' => ['common', 'auth', 'active']], function() {
 	Route::get('addon-list', 'HomeController@addonList');
 	Route::post('woocommerce-install', 'AddonInstallController@woocommerceInstall')->name('woocommerce.install');
 });
-

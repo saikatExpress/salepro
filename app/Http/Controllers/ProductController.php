@@ -25,6 +25,7 @@ use Illuminate\Http\Request;
 use App\Models\ProductVariant;
 use App\Models\ProductPurchase;
 use Illuminate\Validation\Rule;
+use NumberToWords\Grammar\Form;
 use App\Models\Product_Supplier;
 use App\Models\Product_Warehouse;
 use Spatie\Permission\Models\Role;
@@ -241,7 +242,7 @@ class ProductController extends Controller
                             <a href="'.route('products.edit', $product->id).'" class="btn btn-link"><i class="fa fa-edit"></i> '.trans('file.edit').'</a>
                         </li>';
                 if(in_array("product_history", $request['all_permission']))
-                    $nestedData['options'] .= \Form::open(["route" => "products.history", "method" => "GET"] ).'
+                    $nestedData['options'] .= Form::open(["route" => "products.history", "method" => "GET"] ).'
                             <li>
                                 <input type="hidden" name="product_id" value="'.$product->id.'" />
                                 <button type="submit" class="btn btn-link"><i class="dripicons-checklist"></i> '.trans("file.Product History").'</button>
