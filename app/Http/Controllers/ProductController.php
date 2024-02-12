@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use DB;
 use File;
 use DNS1D;
 use Keygen\Keygen;
@@ -28,6 +27,7 @@ use Illuminate\Validation\Rule;
 use NumberToWords\Grammar\Form;
 use App\Models\Product_Supplier;
 use App\Models\Product_Warehouse;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
 use Intervention\Image\Facades\Image;
@@ -53,8 +53,9 @@ class ProductController extends Controller
 
         // }
 
-
         $role = Role::find(Auth::user()->role_id);
+        $products = Product::with('category', 'brand', 'unit')->get();
+        // return $products;
         if($role->hasPermissionTo('products-index')){
             $permissions = Role::findByName($role->name)->permissions;
             foreach ($permissions as $permission)
@@ -71,10 +72,11 @@ class ProductController extends Controller
             foreach($custom_fields as $fieldName) {
                 $field_name[] = str_replace(" ", "_", strtolower($fieldName));
             }
-            return view('backend.product.index', compact('all_permission', 'role_id', 'numberOfProduct', 'custom_fields', 'field_name'));
+            return view('backend.product.index', compact('products','all_permission', 'role_id', 'numberOfProduct', 'custom_fields', 'field_name'));
         }
-        else
+        else{
             return redirect()->back()->with('not_permitted', 'Sorry! You are not allowed to access this module');
+        }
     }
 
     public function productData(Request $request)
@@ -93,24 +95,29 @@ class ProductController extends Controller
 
         $totalData = DB::table('products')->where('is_active', true)->count();
         $totalFiltered = $totalData;
-
-        if($request->input('length') != -1)
-            $limit = $request->input('length');
-        else
-            $limit = $totalData;
         $start = $request->input('start');
-        $order = 'products.'.$columns[$request->input('order.0.column')];
-        $dir = $request->input('order.0.dir');
-        //fetching custom fields data
-        $custom_fields = CustomField::where([
-                        ['belongs_to', 'product'],
-                        ['is_table', true]
-                    ])->pluck('name');
-        $field_names = [];
-        foreach($custom_fields as $fieldName) {
-            $field_names[] = str_replace(" ", "_", strtolower($fieldName));
+        if($request->input('length') != -1){
+            $limit = $request->input('length');
+            $order = 'products.'.$columns[$request->input('order.0.column')];
+            $dir = $request->input('order.0.dir');
+        }else{
+            $limit = $totalData;
+            $start = $request->input('start');
+            $order = 'products.'.$columns[$request->input('order.0.column')];
+            $dir = $request->input('order.0.dir');
+            //fetching custom fields data
+            $custom_fields = CustomField::where([
+                            ['belongs_to', 'product'],
+                            ['is_table', true]
+                        ])->pluck('name');
+            $field_names = [];
+            foreach($custom_fields as $fieldName) {
+                $field_names[] = str_replace(" ", "_", strtolower($fieldName));
+            }
         }
+
         if(empty($request->input('search.value'))){
+
             $products = Product::with('category', 'brand', 'unit')->offset($start)
                         ->where('is_active', true)
                         ->limit($limit)
@@ -146,7 +153,6 @@ class ProductController extends Controller
             foreach ($field_names as $key => $field_name) {
                 $q = $q->orwhere('products.' . $field_name, 'LIKE', "%{$search}%");
             }
-
             $q = $q->offset($start)
                 ->limit($limit)
                 ->orderBy($order,$dir);
@@ -242,11 +248,11 @@ class ProductController extends Controller
                             <a href="'.route('products.edit', $product->id).'" class="btn btn-link"><i class="fa fa-edit"></i> '.trans('file.edit').'</a>
                         </li>';
                 if(in_array("product_history", $request['all_permission']))
-                    $nestedData['options'] .= Form::open(["route" => "products.history", "method" => "GET"] ).'
-                            <li>
-                                <input type="hidden" name="product_id" value="'.$product->id.'" />
-                                <button type="submit" class="btn btn-link"><i class="dripicons-checklist"></i> '.trans("file.Product History").'</button>
-                            </li>'.\Form::close();
+                    $nestedData['options'] .= form()->open(["route" => "products.history", "method" => "GET"] ).'
+                                            <li>
+                                                <input type="hidden" name="product_id" value="'.$product->id.'" />
+                                                <button type="submit" class="btn btn-link"><i class="dripicons-checklist"></i> '.trans("file.Product History").'</button>
+                                            </li>'.form()->close();
                 if(in_array("print_barcode", $request['all_permission'])) {
                     $product_info = $product->code.' ('.$product->name.')';
                     $nestedData['options'] .= \Form::open(["route" => "product.printBarcode", "method" => "GET"] ).'
@@ -285,7 +291,6 @@ class ProductController extends Controller
             "recordsFiltered" => intval($totalFiltered),
             "data"            => $data
         );
-
         echo json_encode($json_data);
     }
 

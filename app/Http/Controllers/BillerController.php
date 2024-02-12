@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Biller;
-use App\Models\MailSetting;
-use Illuminate\Validation\Rule;
-use Intervention\Image\Facades\Image;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
-use Auth;
-use App\Mail\BillerCreate;
 use Mail;
+use App\Models\Biller;
+use App\Mail\BillerCreate;
+use App\Models\MailSetting;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Auth;
+use Intervention\Image\Facades\Image;
+use Spatie\Permission\Models\Permission;
 
 class BillerController extends Controller
 {
@@ -48,10 +48,7 @@ class BillerController extends Controller
     {
         $this->validate($request, [
             'company_name' => [
-                'max:255',
-                    Rule::unique('billers')->where(function ($query) {
-                    return $query->where('is_active', 1);
-                }),
+                'max:255'
             ],
             'email' => [
                 'email',
